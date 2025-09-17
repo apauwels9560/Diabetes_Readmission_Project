@@ -1,0 +1,68 @@
+-- 1. Check total number of patients
+SELECT COUNT(*) AS total_patients
+FROM diabetic_data;
+
+-- 2. Readmission summary
+CREATE TABLE readmission_summary AS
+SELECT 
+    readmitted,
+    COUNT(*) AS patient_count,
+    ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM diabetic_data), 2) AS pct_of_total
+FROM diabetic_data
+GROUP BY readmitted;
+
+-- 3. Age distribution
+CREATE TABLE age_distribution AS
+SELECT 
+    age,
+    COUNT(*) AS patient_count
+FROM diabetic_data
+GROUP BY age
+ORDER BY age;
+
+-- 4. Gender distribution
+CREATE TABLE gender_distribution AS
+SELECT 
+    gender,
+    COUNT(*) AS patient_count,
+    ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM diabetic_data), 2) AS pct_of_total
+FROM diabetic_data
+GROUP BY gender;
+
+-- 5. Race distribution
+CREATE TABLE race_distribution AS
+SELECT 
+    race,
+    COUNT(*) AS patient_count,
+    ROUND(100.0 * COUNT(*) / (SELECT COUNT(*) FROM diabetic_data), 2) AS pct_of_total
+FROM diabetic_data
+GROUP BY race;
+
+-- 6. Average prior admissions by readmission status
+CREATE TABLE admissions_by_readmission AS
+SELECT 
+    readmitted,
+    ROUND(AVG(number_inpatient + number_outpatient + number_emergency), 2) AS avg_total_prior_admissions
+FROM diabetic_data
+GROUP BY readmitted;
+
+-- 7. Average number of medications by readmission status
+CREATE TABLE meds_by_readmission AS
+SELECT 
+    readmitted,
+    ROUND(AVG(num_medications), 2) AS avg_num_medications
+FROM diabetic_data
+GROUP BY readmitted;
+
+- 8. Correlation check: Prior admissions vs medications (simple aggregate view)
+CREATE TABLE admissions_meds_crosstab AS
+SELECT 
+    total_prior_admissions,
+    ROUND(AVG(num_medications), 2) AS avg_num_medications,
+    COUNT(*) AS patient_count
+FROM (SELECT 
+        (number_inpatient + number_outpatient + number_emergency) AS total_prior_admissions,
+        num_medications
+    FROM diabetic_data)
+GROUP BY total_prior_admissions
+ORDER BY total_prior_admissions;
